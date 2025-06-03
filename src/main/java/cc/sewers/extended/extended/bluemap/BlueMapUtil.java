@@ -1,9 +1,7 @@
 package cc.sewers.extended.extended.bluemap;
 
+import cc.sewers.extended.extended.create.Watcher;
 import cc.sewers.extended.extended.ftbchunks.FTBChunksBlueMapCompat;
-import de.bluecolored.bluemap.api.BlueMapAPI;
-import de.bluecolored.bluemap.api.BlueMapMap;
-import de.bluecolored.bluemap.api.markers.MarkerSet;
 import com.mojang.logging.LogUtils;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
@@ -19,6 +17,7 @@ public class BlueMapUtil {
 
     public static void register() {
         registerPlugin(FTBChunksBlueMapCompat::init);
+        registerPlugin(Watcher::init);
 
         LOGGER.info("Registered BlueMap compatibility plugins");
     }
@@ -51,6 +50,9 @@ public class BlueMapUtil {
 
     public static void reset() {
         initialized = false;
+        FTBChunksBlueMapCompat.stop();
+        Watcher.stop();
+
         LOGGER.debug("BlueMap plugin initialization reset");
     }
 }

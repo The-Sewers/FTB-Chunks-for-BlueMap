@@ -5,8 +5,11 @@ import dev.ftb.mods.ftblibrary.math.ChunkDimPos;
 import dev.ftb.mods.ftbteams.api.Team;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.common.UsernameCache;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClaimRegion {
     private final Team team;
@@ -14,6 +17,8 @@ public class ClaimRegion {
     private final String teamName;
     private final int teamColor;
     private final Set<ChunkDimPos> chunks;
+    private static final Map<UUID, AtomicInteger> teamRegionCounters = new ConcurrentHashMap<>();
+    private final int regionNumber;
 
     public ClaimRegion(Team team, String dimension, String teamName, int teamColor) {
         this.team = team;
@@ -21,14 +26,13 @@ public class ClaimRegion {
         this.teamName = teamName;
         this.teamColor = teamColor;
         this.chunks = new HashSet<>();
+        this.regionNumber = teamRegionCounters
+            .computeIfAbsent(team.getTeamId(), k -> new AtomicInteger(0))
+            .incrementAndGet();
     }
 
     public void addChunk(ChunkDimPos pos) {
         chunks.add(pos);
-    }
-
-    public Set<ChunkDimPos> getChunks() {
-        return chunks;
     }
 
     public Vector2i[] getChunkCoordinates() {
@@ -54,14 +58,33 @@ public class ClaimRegion {
     }
 
     public String getLabel() {
-        return teamName + "'s Claim";
+        double avgX = 0;
+        double avgZ = 0;
+
+        if (!chunks.isEmpty()) {
+            for (ChunkDimPos pos : chunks) {
+                avgX += pos.x() * 16;
+                avgZ += pos.z() * 16;
+            }
+            avgX /= chunks.size();
+            avgZ /= chunks.size();
+        }
+
+        int centerX = (int) avgX;
+        int centerZ = (int) avgZ;
+
+        return teamName + "'s Region " + regionNumber + " (" + centerX + " | ~ | " + centerZ + ")";
+    }
+
+    public static void resetRegionCounters() {
+        teamRegionCounters.clear();
     }
 
     private record MemberDisplayInfo(String displayName, boolean isOnline,
                                      UUID id) implements Comparable<MemberDisplayInfo> {
 
         @Override
-            public int compareTo(MemberDisplayInfo other) {
+            public int compareTo(@NotNull MemberDisplayInfo other) {
                 if (this.isOnline && !other.isOnline) {
                     return -1;
                 }

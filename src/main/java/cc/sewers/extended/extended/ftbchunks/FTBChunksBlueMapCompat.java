@@ -1,5 +1,6 @@
 package cc.sewers.extended.extended.ftbchunks;
 
+import cc.sewers.extended.Config;
 import cc.sewers.extended.util.Cheese;
 import com.flowpowered.math.vector.Vector2i;
 import com.mojang.logging.LogUtils;
@@ -18,31 +19,68 @@ import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class FTBChunksBlueMapCompat {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final String MARKER = "ftbchunks.claims";
     private static final Map<String, Map<UUID, Set<String>>> activeRegions = new ConcurrentHashMap<>();
+    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private static ScheduledFuture<?> future;
+    private static MinecraftServer server;
 
-    public static void init(MinecraftServer server) {
-        activeRegions.clear();
-        BlueMapAPI.onEnable(api -> {
-            for (ServerLevel level : server.getAllLevels()) {
-                ResourceKey<Level> dimension = level.dimension();
-                String dimensionId = dimension.location().toString();
-                api.getWorld(level).ifPresent(world -> world.getMaps().forEach(map -> {
-                    MarkerSet markerSet = map.getMarkerSets().get(MARKER);
-                    if (markerSet == null) {
-                        markerSet = MarkerSet.builder().label("Claims").build();
-                        map.getMarkerSets().put(MARKER, markerSet);
+    public static void init(MinecraftServer minecraftServer) {
+        LOGGER.info("Initializing FTB Chunks BlueMap compatibility...");
+
+        if (Config.bluemapFtbChunksEnabled) {
+            server = minecraftServer;
+            activeRegions.clear();
+            ClaimRegion.resetRegionCounters();
+            start();
+        } else {
+            LOGGER.info("FTB Chunks BlueMap compatibility is disabled in the config.");
+        }
+    }
+
+    public static void start() {
+        Runnable task = () -> {
+            Optional<BlueMapAPI> apiOptional = BlueMapAPI.getInstance();
+            apiOptional.ifPresent(api -> {
+                try {
+                    if (server != null) {
+                        for (ServerLevel level : server.getAllLevels()) {
+                            ResourceKey<Level> dimension = level.dimension();
+                            String dimensionId = dimension.location().toString();
+                            api.getWorld(level).ifPresent(world -> world.getMaps().forEach(map -> {
+                                MarkerSet markerSet = map.getMarkerSets().get(MARKER);
+                                if (markerSet == null) {
+                                    markerSet = MarkerSet.builder().label("Claims").build();
+                                    map.getMarkerSets().put(MARKER, markerSet);
+                                }
+                            }));
+                            activeRegions.put(dimensionId, new ConcurrentHashMap<>());
+                            updateDimensionClaims(level);
+                        }
                     }
-                    markerSet.getMarkers().clear();
-                }));
-                activeRegions.put(dimensionId, new ConcurrentHashMap<>());
-                updateDimensionClaims(level);
-            }
-            LOGGER.info("FTBChunksBlueMap initialized successfully.");
-        });
+                } catch (Exception e) {
+                    LOGGER.error("Error updating FTB Chunks claims: {}", e.getMessage());
+                }
+            });
+        };
+
+        // Schedule the task to run periodically
+        future = scheduler.scheduleAtFixedRate(task, 0, Config.bluemapChunkAutoUpdateMs, TimeUnit.MILLISECONDS);
+        LOGGER.info("FTBChunksBlueMap initialized successfully.");
+    }
+
+    public static void stop() {
+        if (future != null && !future.isCancelled()) {
+            future.cancel(false);
+            LOGGER.info("Stopped FTB Chunks BlueMap watcher.");
+        }
     }
 
     public static void updateDimensionClaims(ServerLevel level) {

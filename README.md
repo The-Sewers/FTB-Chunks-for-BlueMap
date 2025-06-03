@@ -1,25 +1,51 @@
+# FTB Chunks for BlueMap
 
-Installation information
-=======
+**Visualize FTB Chunks land claims directly in BlueMap.**
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+## About
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+**FTB Chunks for BlueMap** is a straightforward mod designed to seamlessly integrate your FTB Chunks land claims directly into your BlueMap web interface.
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+With this mod, you can now effortlessly **visualize all chunk claims from FTB Chunks on your BlueMap**, whether you're exploring the top-down 2D map or the immersive 3D world view. This makes it incredibly easy to see where land is claimed on your server, helping you manage and understand your protected areas at a glance.
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+## Features
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+*   View FTB Chunks Claims: Displays all active chunk claims from FTB Chunks on your BlueMap.
+*   2D & 3D Visualization: See claims in both the top-down 2D map and the immersive 3D view.
+*   Color-Coded Claims: Easily distinguish between different players' claims (requires BlueMap's built-in player coloring or will use a default color).
+*   Highly Compatible: Works seamlessly with both FTB Chunks and BlueMap.
+*   Lightweight: Designed to be efficient and not impact server performance significantly.
+
+## Installation
+
+1.  **Download:** Grab the latest release from (to be added later).
+2.  **Place in `mods` folder:** Drop the downloaded `.jar` file into your server's and/or client's `mods` folder.
+3.  **Dependencies:** Ensure you have [FTB Chunks](https://www.curseforge.com/minecraft/mc-mods/ftb-chunks-forge) and [BlueMap](https://www.curseforge.com/minecraft/mc-mods/bluemap) installed and configured.
+4.  **Restart:** Restart your Minecraft server.
+
+## Contributing
+
+Contributions are welcome! If you have suggestions, bug reports, or want to contribute code, please check out the [Issues](https://github.com/The-Sewers/FTB-Chunks-for-BlueMap/issues) section on GitHub or open a Pull Request.
+
+As this is my first dive into NeoForge modding, I truly appreciate any feedback or bug reports you might have to help me improve it!
+
+## Support & Bug Reports
+
+If you encounter any bugs or have issues, please report them on the [GitHub Issue Tracker](https://github.com/The-Sewers/FTB-Chunks-for-BlueMap/issues). When reporting a bug, please include:
+
+*   Mod version
+*   Minecraft version
+*   NeoForge version
+*   BlueMap version
+*   FTB Chunks version
+*   Steps to reproduce the issue
+*   Any relevant crash logs
+
+## Licensing
+
+This project is licensed under the **MIT License**.
+
+A copy of the MIT License can be found in `LICENSE.md` at the root of this repository.
+
+---
+**Disclaimer:** This mod is not affiliated with FTB Chunks or BlueMap.

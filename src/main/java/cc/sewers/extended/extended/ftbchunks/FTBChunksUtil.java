@@ -21,6 +21,9 @@ public class FTBChunksUtil {
     public static FTBChunksAPI.API getFtbChunksAPI() {
         return ftbChunksAPI;
     }
+    public static TeamManager getTeamManager() {
+        return teamManager;
+    }
 
     public static Map<UUID, List<ClaimedChunk>> getClaimedChunks(ResourceKey<Level> dimension) {
         Collection<ClaimedChunk> claimedChunks = (Collection<ClaimedChunk>) ftbChunksAPI.getManager().getAllClaimedChunks();
@@ -32,12 +35,12 @@ public class FTBChunksUtil {
                 ));
     }
 
-    public static String generateRandomColor(UUID teamId) {
-        Random random = new Random(teamId.getMostSignificantBits() ^ teamId.getLeastSignificantBits());
-        int r = random.nextInt(256);
-        int g = random.nextInt(256);
-        int b = random.nextInt(256);
-        return String.format("#%02X%02X%02X", r, g, b);
+    public static List<ClaimedChunk> getClaimedChunksForTeam(ResourceKey<Level> dimension, UUID teamId) {
+        Collection<ClaimedChunk> claimedChunks = (Collection<ClaimedChunk>) ftbChunksAPI.getManager().getAllClaimedChunks();
+        return claimedChunks.stream()
+                .filter(chunk -> chunk.getPos().dimension().equals(dimension))
+                .filter(chunk -> chunk.getTeamData().getTeam().getTeamId().equals(teamId))
+                .collect(Collectors.toList());
     }
 
     public static int getTeamColor(Team team) {

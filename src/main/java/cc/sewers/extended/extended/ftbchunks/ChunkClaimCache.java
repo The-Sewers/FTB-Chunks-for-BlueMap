@@ -46,17 +46,15 @@ public class ChunkClaimCache {
             ResourceLocation dimensionId = dimension.location();
             boolean dimensionChanged = false;
 
-            // Get current claims from FTBChunks API
             Map<UUID, List<ClaimedChunk>> currentClaims = FTBChunksUtil.getClaimedChunks(dimension);
 
-            // Process current claims into positions and team data maps
             Map<UUID, Set<ChunkDimPos>> currentClaimPositions = new HashMap<>();
             Map<UUID, TeamData> currentTeamData = new HashMap<>();
             currentClaims.forEach((teamId, chunks) -> {
                 Set<ChunkDimPos> positions = chunks.stream().map(ClaimedChunk::getPos).collect(Collectors.toSet());
                 currentClaimPositions.put(teamId, positions);
                 if (!chunks.isEmpty()) {
-                    ClaimedChunk firstChunk = chunks.get(0);
+                    ClaimedChunk firstChunk = chunks.getFirst();
                     Team team = firstChunk.getTeamData().getTeam();
                     String teamName = team.getShortName().split("#")[0];
                     int teamColor = FTBChunksUtil.getTeamColor(team);
@@ -64,10 +62,8 @@ public class ChunkClaimCache {
                 }
             });
 
-            // Get existing cache for this dimension, or create empty one if none exists
             Map<UUID, Set<ChunkDimPos>> cachedClaimsForDimension = claimCache.getOrDefault(dimensionId, new HashMap<>());
 
-            // Find which teams had changes to their claims
             Set<UUID> changedTeams = findChangedTeams(currentClaimPositions, cachedClaimsForDimension, currentTeamData);
 
             if (!changedTeams.isEmpty()) {
@@ -81,11 +77,9 @@ public class ChunkClaimCache {
                 LOGGER.debug("No changes found for dimension {}", dimensionId);
             }
 
-            // Update the cache with current claim positions
             claimCache.put(dimensionId, new HashMap<>(currentClaimPositions));
 
-            // Update the team data cache
-            currentTeamData.forEach((teamId, data) -> teamDataCache.put(teamId, data));
+            teamDataCache.putAll(currentTeamData);
 
             if (dimensionChanged) {
                 changedDimensions.add(level);
@@ -100,12 +94,10 @@ public class ChunkClaimCache {
     private Set<UUID> findChangedTeams(Map<UUID, Set<ChunkDimPos>> currentClaims, Map<UUID, Set<ChunkDimPos>> cachedClaims, Map<UUID, TeamData> currentTeamData) {
         Set<UUID> changedTeams = new HashSet<>();
 
-        // Check teams in current claims
         for (UUID teamId : currentClaims.keySet()) {
             Set<ChunkDimPos> teamCurrentClaims = currentClaims.get(teamId);
             Set<ChunkDimPos> teamCachedClaims = cachedClaims.getOrDefault(teamId, new HashSet<>());
 
-            // Check if the claims have changed (different size or different content)
             if (teamCurrentClaims.size() != teamCachedClaims.size() ||
                     !teamCurrentClaims.containsAll(teamCachedClaims) ||
                     !teamCachedClaims.containsAll(teamCurrentClaims)) {
@@ -114,16 +106,14 @@ public class ChunkClaimCache {
                 continue;
             }
 
-            // Check if the team data has changed
             TeamData currentData = currentTeamData.get(teamId);
             TeamData cachedData = teamDataCache.get(teamId);
-            if (currentData != null && (cachedData == null || !currentData.equals(cachedData))) {
+            if (currentData != null && (!currentData.equals(cachedData))) {
                 LOGGER.debug("Team data changed for team {}", teamId);
                 changedTeams.add(teamId);
             }
         }
 
-        // Check for teams that were removed from current claims but exist in cache
         for (UUID teamId : cachedClaims.keySet()) {
             if (!currentClaims.containsKey(teamId)) {
                 LOGGER.debug("Team {} was removed from claims", teamId);
@@ -139,18 +129,15 @@ public class ChunkClaimCache {
         ResourceLocation dimensionId = chunk.getPos().dimension().location();
         UUID teamId = chunk.getTeamData().getTeam().getTeamId();
 
-        // Add the chunk position to the cache
         claimCache.computeIfAbsent(dimensionId, k -> new HashMap<>())
                 .computeIfAbsent(teamId, k -> new HashSet<>())
                 .add(chunk.getPos());
 
-        // Also update team data in the cache
         Team team = chunk.getTeamData().getTeam();
         String teamName = team.getShortName().split("#")[0];
         int teamColor = FTBChunksUtil.getTeamColor(team);
         teamDataCache.put(teamId, new TeamData(teamName, teamColor));
 
-        // Trigger an update for this chunk's dimension and team
         try {
             ResourceKey<Level> dimension = chunk.getPos().dimension();
             List<ClaimedChunk> teamClaims = FTBChunksUtil.getClaimedChunks(dimension).getOrDefault(teamId, Collections.emptyList());
@@ -165,7 +152,6 @@ public class ChunkClaimCache {
         ResourceLocation dimensionId = chunk.getPos().dimension().location();
         UUID teamId = chunk.getTeamData().getTeam().getTeamId();
 
-        // Remove the chunk from the cache
         Map<UUID, Set<ChunkDimPos>> teamClaims = claimCache.get(dimensionId);
         if (teamClaims != null) {
             Set<ChunkDimPos> claims = teamClaims.get(teamId);
@@ -177,7 +163,6 @@ public class ChunkClaimCache {
             }
         }
 
-        // Trigger an update for this chunk's dimension and team
         try {
             ResourceKey<Level> dimension = chunk.getPos().dimension();
             List<ClaimedChunk> remainingClaims = FTBChunksUtil.getClaimedChunks(dimension).getOrDefault(teamId, Collections.emptyList());
@@ -194,18 +179,10 @@ public class ChunkClaimCache {
 
     private void updateTeamMap(ResourceKey<Level> dimension, UUID teamId, List<ClaimedChunk> teamClaims) {
         LOGGER.debug("Updating team {} claims in dimension {}", teamId, dimension.location());
-        // Get the existing claims from cache for comparison
-        Set<String> oldClaimStrings = claimCache.getOrDefault(dimension.location(), new HashMap<>())
-                .getOrDefault(teamId, new HashSet<>())
-                .stream()
-                .map(ChunkDimPos::toString)
-                .collect(Collectors.toSet());
 
-        // Call BlueMapUtil to update the claims
-        BlueMapUtil.updateTeamClaims(dimension, teamId, teamClaims, oldClaimStrings);
+        FTBChunksBlueMapCompat.updateTeamClaims(dimension, teamId, teamClaims);
 
-        // Log the number of claims being updated
-        LOGGER.debug("Updated {} claims for team {} in dimension {}", 
+        LOGGER.debug("Updated {} claims for team {} in dimension {}",
                 teamClaims.size(), 
                 teamId, 
                 dimension.location());

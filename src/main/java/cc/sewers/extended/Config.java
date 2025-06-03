@@ -17,19 +17,14 @@ public class Config
 {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
-    // Max update interval for the bluemap chunk auto update, in seconds. min: 30 seconds, max: no limit.
+    // Max update interval for the bluemap chunk auto update, in seconds. min: 5 seconds, max: no limit.
     private static final ModConfigSpec.IntValue BLUEMAP_CHUNK_AUTO_UPDATE_MS = BUILDER
             .comment("How often the bluemap chunk auto update should run, in milliseconds.")
-            .defineInRange("ftbchunksClaimIntervalMs", 60000, 30000, Integer.MAX_VALUE);
+            .defineInRange("ftbchunksClaimIntervalMs", 60000, 5000, Integer.MAX_VALUE);
 
     static final ModConfigSpec SPEC = BUILDER.build();
 
     public static int bluemapChunkAutoUpdateMs;
-
-    private static boolean validateItemName(final Object obj)
-    {
-        return obj instanceof String itemName && BuiltInRegistries.ITEM.containsKey(ResourceLocation.parse(itemName));
-    }
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event)

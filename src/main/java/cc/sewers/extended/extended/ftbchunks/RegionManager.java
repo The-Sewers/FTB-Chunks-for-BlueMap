@@ -1,8 +1,7 @@
-package cc.sewers.extended.extended.bluemap;
+package cc.sewers.extended.extended.ftbchunks;
 
 import java.util.*;
 
-import cc.sewers.extended.extended.ftbchunks.FTBChunksUtil;
 import dev.ftb.mods.ftbchunks.api.ClaimedChunk;
 import dev.ftb.mods.ftblibrary.math.ChunkDimPos;
 import dev.ftb.mods.ftbteams.api.Team;
@@ -22,7 +21,7 @@ public class RegionManager {
         List<ClaimRegion> regions = new ArrayList<>();
         String dimensionId = dimension.location().toString();
         while (!unprocessed.isEmpty()) {
-            ClaimRegion region = new ClaimRegion(teamId, dimensionId, teamName, teamColor);
+            ClaimRegion region = new ClaimRegion(team, dimensionId, teamName, teamColor);
             ChunkDimPos seed = unprocessed.iterator().next();
             unprocessed.remove(seed);
             Queue<ChunkDimPos> queue = new LinkedList<>();

@@ -20,36 +20,36 @@ import net.neoforged.neoforge.common.NeoForge;
 
 @Mod(SewersExtended.MODID)
 public class SewersExtended {
-    public static final String MODID = "sewersextended";
+    public static final String MODID = "ftbchunksbluemap";
     private static final Logger LOGGER = LogUtils.getLogger();
     private final ChunkClaimCache claimCache = new ChunkClaimCache();
-    private long updateIntervalTicks;
+    private long updateIntervalTicksMs;
     private long lastUpdateTime = 0;
     private MinecraftServer server;
 
     public SewersExtended(IEventBus modEventBus, ModContainer modContainer) {
         NeoForge.EVENT_BUS.register(this);
+        // NeoForge.EVENT_BUS.register(PlayerEventHandler.class);
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
-        LOGGER.info("Initializing SewersExtended");
+        LOGGER.info("Initializing FTBChunksBlueMap");
         this.server = event.getServer();
         BlueMapUtil.init(event.getServer());
         ClaimedChunkEvent.AFTER_CLAIM.register((CommandSourceStack var1, ClaimedChunk chunk) -> claimCache.addClaim(chunk));
         ClaimedChunkEvent.AFTER_UNCLAIM.register((CommandSourceStack var1, ClaimedChunk chunk) -> claimCache.removeClaim(chunk));
 
-        // Convert config value from milliseconds to ticks (20 ticks = 1 second)
-        updateIntervalTicks = Math.max(600, Config.bluemapChunkAutoUpdateMs / 50); // Minimum 30 seconds (600 ticks)
-        LOGGER.info("SewersExtended timer initialized - checking for claim changes every {} seconds", updateIntervalTicks / 20);
+        updateIntervalTicksMs = Config.bluemapChunkAutoUpdateMs / 50;
+        LOGGER.info("BlueMap chunk update interval set to {} ticks ({} ms)", updateIntervalTicksMs, Config.bluemapChunkAutoUpdateMs);
     }
 
     @SubscribeEvent
     public void onServerTick(ServerTickEvent.Post event) {
         if (!event.hasTime() || server == null) return;
         long currentTime = server.getTickCount();
-        if (currentTime - lastUpdateTime > updateIntervalTicks) {
+        if (currentTime - lastUpdateTime > updateIntervalTicksMs) {
             lastUpdateTime = currentTime;
             LOGGER.debug("Running periodic claim check...");
             updateChunkClaimsFromCache();
@@ -68,6 +68,7 @@ public class SewersExtended {
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
         LOGGER.info("Shutting down SewersExtended");
+        BlueMapUtil.reset();
         claimCache.clear();
     }
 }

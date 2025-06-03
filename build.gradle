@@ -19,19 +19,16 @@ group = mod_group_id
 
 repositories {
     mavenLocal()
-    maven {
-        url 'https://repo.bluecolored.de/releases/'
-    }
+    maven {url 'https://repo.bluecolored.de/releases/' } // BlueMap
     exclusiveContent {
         forRepository {
-            maven {
-                url "https://cursemaven.com"
-            }
+            maven {url "https://cursemaven.com" }
         }
-        filter {
-            includeGroup "curse.maven"
-        }
+        filter {includeGroup "curse.maven"}
     }
+    maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
+    maven { url = "https://mvn.devos.one/snapshots" } // Registrate
+    maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // ForgeConfigAPIPort
 }
 
 base {
@@ -125,13 +122,19 @@ configurations {
 }
 
 dependencies {
-    implementation "curse.maven:ftb-chunks-forge-314906:6504893"
-    implementation "curse.maven:ftb-library-forge-404465:6466106"
-    implementation "curse.maven:ftb-teams-forge-404468:6119437"
-    implementation 'de.bluecolored:bluemap-api:2.7.4'
+    implementation("curse.maven:ftb-chunks-forge-${ftb_chunks_id}:${ftb_chunks_version}")
+    implementation("curse.maven:ftb-library-forge-${ftb_library_id}:${ftb_library_version}")
+    implementation("curse.maven:ftb-teams-forge-${ftb_teams_id}:${ftb_teams_version}")
+    implementation("de.bluecolored:bluemap-api:${bluemap_api_version}")
 
-    implementation 'curse.maven:architectury-api-419699:5786327'
-    implementation 'curse.maven:bluemap-406463:6239407'
+    implementation("curse.maven:architectury-api-${architectury_api_id}:${architectury_api_version}")
+    implementation("curse.maven:bluemap-${bluemap_id}:${bluemap_version}")
+
+//    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
+//    implementation("net.createmod.ponder:Ponder-NeoForge-${minecraft_version}:${ponder_version}")
+//    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
+//    runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
+//    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

@@ -18,7 +18,7 @@ With this mod, you can now effortlessly **visualize all chunk claims from FTB Ch
 
 ## Installation
 
-1.  **Download:** Grab the latest release from (to be added later).
+1.  **Download:** Grab the latest release from [CurseForge](https://swrs.cc/ftb-chunks-for-bluemap).
 2.  **Place in `mods` folder:** Drop the downloaded `.jar` file into your server's and/or client's `mods` folder.
 3.  **Dependencies:** Ensure you have [FTB Chunks](https://www.curseforge.com/minecraft/mc-mods/ftb-chunks-forge) and [BlueMap](https://www.curseforge.com/minecraft/mc-mods/bluemap) installed and configured.
 4.  **Restart:** Restart your Minecraft server.
